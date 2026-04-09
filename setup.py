@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="discord-alerts-kit",
-    version="0.1.0",
+    version="0.2.0",
     author="jackfrost_13",
     description="A Python library to build Discord alert bots easily",
     long_description=long_description,
