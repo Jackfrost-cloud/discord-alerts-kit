@@ -2,6 +2,7 @@ import discord
 from discord.ext import tasks
 from .embed import build_embed
 from .config import load_config
+from .storage import is_duplicate, mark_sent
 
 class AlertBot(discord.Client):
     def __init__(self, config_path: str = "config.yaml"):
@@ -12,6 +13,7 @@ class AlertBot(discord.Client):
         self.config = load_config(config_path)
         self.subscribers = set()
         self._alert_sources = []
+        self._check_interval = self.config.get("check_interval", 10)
 
     def add_source(self, func):
         """Ajoute une fonction source d'alertes"""
@@ -38,7 +40,11 @@ class AlertBot(discord.Client):
                     alerts = await source()
                 else:
                     alerts = source()
+
                 for alert in alerts:
+                    if is_duplicate(alert):
+                        continue
+
                     embed = build_embed(
                         title=alert.get("title", "Alerte"),
                         description=alert.get("description", ""),
@@ -47,6 +53,7 @@ class AlertBot(discord.Client):
                         footer=alert.get("footer")
                     )
                     await channel.send(embed=embed)
+                    mark_sent(alert)
 
                     if self.config.get("dm_subscribers"):
                         for user_id in self.subscribers:
